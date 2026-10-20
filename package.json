@@ -17,6 +17,9 @@
     "test": "vitest run",
     "db:migrate": "node --import tsx apps/api/src/migrate.ts",
     "db:seed": "node --import tsx apps/api/src/seed.ts",
+    "aws:preflight": "node scripts/deployAwsProduction.mjs --preflight-only",
+    "aws:check-production-env": "node scripts/deployAwsProduction.mjs --check-production-env",
+    "aws:deploy:production": "node scripts/deployAwsProduction.mjs",
     "test:e2e": "playwright test"
   },
   "dependencies": {
