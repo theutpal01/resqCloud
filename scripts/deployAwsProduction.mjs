@@ -112,22 +112,6 @@ async function waitForHttp(url) {
   throw lastError;
 }
 
-function deleteOldDemoDatabase() {
-  const old = aws(
-    ["rds", "describe-db-clusters", "--db-cluster-identifier", "resqcloud", "--output", "json"],
-    { json: true, quiet: true },
-  ).DBClusters[0];
-  for (const member of old.DBClusterMembers ?? []) {
-    const id = member.DBInstanceIdentifier;
-    console.log(`Deleting old demo database instance ${id} after production checks passed`);
-    aws(["rds", "delete-db-instance", "--db-instance-identifier", id, "--skip-final-snapshot"]);
-    aws(["rds", "wait", "db-instance-deleted", "--db-instance-identifier", id]);
-  }
-  console.log("Deleting old demo Aurora cluster without a final snapshot as requested");
-  aws(["rds", "delete-db-cluster", "--db-cluster-identifier", "resqcloud", "--skip-final-snapshot"]);
-  aws(["rds", "wait", "db-cluster-deleted", "--db-cluster-identifier", "resqcloud"]);
-}
-
 async function main() {
   const identity = aws(["sts", "get-caller-identity", "--output", "json"], { json: true, quiet: true });
   if (identity.Account !== "590951085792")
@@ -222,7 +206,6 @@ async function main() {
   if (healthBody.status !== "ok" || readyBody.status !== "ready")
     throw new Error(`Application health checks failed: ${JSON.stringify({ healthBody, readyBody })}`);
 
-  deleteOldDemoDatabase();
   console.log(`Production pilot is online at ${appUrl}`);
 }
 

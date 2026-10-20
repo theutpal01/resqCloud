@@ -20,6 +20,10 @@ import {
 } from "../apps/api/src/database.js";
 import { processEvents } from "../apps/api/src/events.js";
 import {
+  decryptMfaSecret,
+  isEncryptedMfaSecret,
+} from "../apps/api/src/mfaCrypto.js";
+import {
   departments,
   categoryDepartment,
   categories,
@@ -116,6 +120,25 @@ describe("jurisdiction migration and demo catalog", () => {
   it("keeps the migration chain idempotent", async () => {
     await expect(migrate()).resolves.toBeUndefined();
   });
+  it("encrypts legacy MFA secrets once during migration", async () => {
+    const user = await User.findByPk(ids.admin);
+    const plaintext = "JBSWY3DPEHPK3PXP";
+    await user!.update({ mfaSecret: plaintext });
+    await db.query(
+      "DELETE FROM schema_migrations WHERE version='006_mfa_secret_encryption'",
+    );
+
+    await migrate();
+    await user!.reload();
+    const encrypted = user!.get().mfaSecret!;
+    expect(isEncryptedMfaSecret(encrypted)).toBe(true);
+    expect(decryptMfaSecret(encrypted)).toBe(plaintext);
+
+    await migrate();
+    await user!.reload();
+    expect(user!.get().mfaSecret).toBe(encrypted);
+    await user!.update({ mfaSecret: null });
+  });
   it("exposes only the sample state outside production", async () => {
     const response = await api.get("/api/v1/jurisdictions");
     expect(response.status).toBe(200);
@@ -123,6 +146,29 @@ describe("jurisdiction migration and demo catalog", () => {
   });
 });
 describe("admin regional and policy configuration", () => {
+  it("stores provisioned authority MFA secrets encrypted", async () => {
+    const email = "provisioned-authority@test.local";
+    const secret = "JBSWY3DPEHPK3PXP";
+    const response = await api
+      .post("/api/v1/admin/users")
+      .set(auth("admin"))
+      .send({
+        name: "Provisioned authority",
+        email,
+        password: "TempPassword!2026",
+        role: "admin",
+        departmentId: null,
+        jurisdictionCode: null,
+        mfaSecret: secret,
+      });
+
+    expect(response.status).toBe(201);
+    const user = await User.findOne({ where: { email } });
+    expect(user!.get().mfaSecret).not.toBe(secret);
+    expect(isEncryptedMfaSecret(user!.get().mfaSecret!)).toBe(true);
+    expect(decryptMfaSecret(user!.get().mfaSecret!)).toBe(secret);
+  });
+
   it("keeps imported boundaries inactive until an audited admin approves them", async () => {
     const code = "IN-TN98";
     await Jurisdiction.create({
@@ -324,9 +370,18 @@ describe("admin regional and policy configuration", () => {
       expect(created.status, created.text).toBe(201);
       expect(created.body.incident.departmentId).toBe(4);
       const incident = await Incident.findByPk(created.body.incident.id);
-      await incident!.update({ createdAt: new Date(Date.now() - 3 * 60_000) });
+      const overdueAt = new Date(Date.now() - 3 * 60_000);
+      await Incident.update(
+        { createdAt: overdueAt },
+        { where: { id: incident!.get().id }, silent: true },
+      );
+      await incident!.reload();
+      expect(incident!.get().createdAt.getTime()).toBeLessThan(
+        Date.now() - 60_000,
+      );
       const analytics = await api.get("/api/v1/analytics").set(auth("admin"));
       expect(analytics.body.responseSla).toMatchObject({
+        tracked: expect.any(Number),
         overdue: expect.any(Number),
         targetMinutes: { high: 1, critical: 2 },
       });

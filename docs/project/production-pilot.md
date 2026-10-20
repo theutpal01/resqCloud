@@ -52,7 +52,7 @@ The current implementation inventory and planned work are tracked in [`feature-m
 - Historical uptime reporting and active checks for Cognito, notifications, evidence delivery, and the map provider.
 - Verification and activation of the proposed support email, support ownership, staffed hours, response expectation, and a backup contact channel.
 - Jurisdiction selection and hierarchical state-to-district incident visibility are implemented. Admins can create and activate districts and assign authorities to active districts; reports route by the reporter-selected area. Verified district boundaries, coordinate-based jurisdiction inference, participating-agency validation, and approved production coverage remain incomplete.
-- Authority MFA enrollment and recovery, account recovery, and safer MFA-secret storage.
+- Authority MFA enrollment and recovery, account recovery, and safe provisioning. Application-level TOTP encryption is implemented, but its key migration and Secrets Manager configuration have not been deployed or verified in the live stack.
 - Admin-only operational policy settings control accepted report categories, category-to-department routing, and high/critical first-response targets. Targets feed analytics; category mappings are validated against existing departments.
 - Map pin selection, responder layers, routes, coverage, and heatmaps.
 - Notification delivery preferences and complete email/SMS/push subscription management.
@@ -65,6 +65,6 @@ Do not present an AWS resource, API route, or health response as evidence that o
 
 ## Deployment checks and operational gaps
 
-Before each deployment, check the caller identity against the intended AWS account, inspect the CloudFormation change set, ensure migrations are reviewed, and verify `/`, `/health`, and `/ready` after rollout. The current deployment script includes deletion of the former demo database after production checks; review that step before reusing or adapting the script.
+Before each deployment, check the caller identity against the intended AWS account, inspect the CloudFormation change set, ensure migrations are reviewed, and verify `/`, `/health`, and `/ready` after rollout. The deployment script does not delete the former demo database; any retirement must be planned separately with a verified backup and explicit operator action.
 
 Production readiness still requires HTTPS from CloudFront to the origin, multi-task behavior and rolling-deploy verification, security and privacy review, Aurora/PostgreSQL integration coverage, role-complete browser coverage, load and failure-injection checks, monitoring/alert thresholds, backup restore validation, and a disaster-recovery rehearsal. See [`../engineering/disaster-recovery.md`](../engineering/disaster-recovery.md) and [`../engineering/monitoring.md`](../engineering/monitoring.md).

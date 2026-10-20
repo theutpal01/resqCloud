@@ -234,6 +234,15 @@ Resources:
       GenerateSecretString:
         PasswordLength: 64
         ExcludePunctuation: true
+  MfaEncryptionSecret:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Name: resqcloud/production/mfa-encryption-key
+      GenerateSecretString:
+        PasswordLength: 64
+        ExcludePunctuation: true
   ApiRepository:
     Type: AWS::ECR::Repository
     Properties:
@@ -289,6 +298,7 @@ Resources:
                 Action: secretsmanager:GetSecretValue
                 Resource:
                   - !Ref ApplicationSecret
+                  - !Ref MfaEncryptionSecret
                   - !GetAtt Database.MasterUserSecret.SecretArn
   ApiTaskRole:
     Type: AWS::IAM::Role
@@ -417,6 +427,7 @@ Resources:
             - {Name: COGNITO_CLIENT_ID, Value: !Ref ProductionCognitoClient}
           Secrets:
             - {Name: JWT_SECRET, ValueFrom: !Ref ApplicationSecret}
+            - {Name: MFA_ENCRYPTION_KEY, ValueFrom: !Ref MfaEncryptionSecret}
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -458,6 +469,7 @@ Resources:
           Secrets:
             - {Name: ADMIN_DB_SECRET, ValueFrom: !GetAtt Database.MasterUserSecret.SecretArn}
             - {Name: JWT_SECRET, ValueFrom: !Ref ApplicationSecret}
+            - {Name: MFA_ENCRYPTION_KEY, ValueFrom: !Ref MfaEncryptionSecret}
           LogConfiguration:
             LogDriver: awslogs
             Options:

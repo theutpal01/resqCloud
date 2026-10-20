@@ -3,6 +3,7 @@ const required = [
   "DATABASE_URL",
   "DB_SSL_CA_PATH",
   "JWT_SECRET",
+  "MFA_ENCRYPTION_KEY",
   "APP_ORIGIN",
   "COGNITO_USER_POOL_ID",
   "COGNITO_CLIENT_ID",

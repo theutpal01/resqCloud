@@ -5,8 +5,10 @@ import {
   Model,
   type Optional,
   type ModelAttributes,
+  Op,
 } from "sequelize";
 import { config } from "./config.js";
+import { encryptMfaSecret, isEncryptedMfaSecret } from "./mfaCrypto.js";
 import { Signer } from "@aws-sdk/rds-signer";
 import type {
   Role,
@@ -594,6 +596,23 @@ export async function migrate() {
       });
     await db.query(
       "INSERT INTO schema_migrations (version) VALUES ('005_jurisdiction_boundaries')",
+    );
+  }
+  const [mfaRows] = await db.query(
+    "SELECT version FROM schema_migrations WHERE version='006_mfa_secret_encryption'",
+  );
+  if (!mfaRows.length) {
+    const users = await User.findAll({
+      where: { mfaSecret: { [Op.ne]: null } },
+      attributes: ["id", "mfaSecret"],
+    });
+    for (const user of users) {
+      const secret = user.get().mfaSecret;
+      if (secret && !isEncryptedMfaSecret(secret))
+        await user.update({ mfaSecret: encryptMfaSecret(secret) });
+    }
+    await db.query(
+      "INSERT INTO schema_migrations (version) VALUES ('006_mfa_secret_encryption')",
     );
   }
 }

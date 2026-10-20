@@ -18,6 +18,7 @@ import {
 } from "../database.js";
 import { authenticate, requireRole, HttpError, safeUser } from "../auth.js";
 import { audit } from "../incidents.js";
+import { encryptMfaSecret } from "../mfaCrypto.js";
 import {
   registerSchema,
   roles,
@@ -125,7 +126,7 @@ router.post(
           departmentId: b.departmentId,
           jurisdictionCode: b.jurisdictionCode,
           passwordHash: await bcrypt.hash(b.password, 12),
-          mfaSecret: b.mfaSecret ?? null,
+          mfaSecret: b.mfaSecret ? encryptMfaSecret(b.mfaSecret) : null,
           enabled: true,
         },
         { transaction },

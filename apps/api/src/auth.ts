@@ -6,6 +6,7 @@ import { TOTP, Secret } from "otpauth";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import { Op } from "sequelize";
 import { config } from "./config.js";
+import { decryptMfaSecret } from "./mfaCrypto.js";
 import { User, Session, Audit, db } from "./database.js";
 import type { Actor, Role } from "../../../packages/shared/src/index.js";
 export class HttpError extends Error {
@@ -188,7 +189,8 @@ export async function login(email: string, password: string, otp?: string) {
   }
   if (config.NODE_ENV === "production" && user.get().role === "citizen")
     throw new HttpError(403, "Use Cognito to sign in");
-  const secret = user.get().mfaSecret;
+  const storedSecret = user.get().mfaSecret;
+  const secret = storedSecret ? decryptMfaSecret(storedSecret) : null;
   if (
     user.get().role !== "citizen" &&
     config.NODE_ENV === "production" &&
