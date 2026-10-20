@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Scaffold reference: overview-actions.png</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@700&display=swap"
+    />
+    <link rel="stylesheet" href="layout.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        background: #f7f7f8;
+      }
+      .region {
+        box-sizing: border-box;
+      }
+      .region.text p {
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Reference only. Every region sits at its measured box inside a comp-aspect frame. Take the boxes (layout.css), keep your own semantic structure. -->
+    <main class="comp-frame" style="max-width: 1505px">
+      <div
+        class="r-navigation-rail region chrome"
+        data-region="navigation-rail"
+      >
+        <!-- Deep teal role-scoped side navigation rail, including brand and grouped destinations -->
+      </div>
+      <div class="r-brand region text" data-region="brand">
+        <!-- ResQCloud wordmark in white beside a compact outline cloud mark -->
+        <p style="line-height: 1.05; margin: 0">brand</p>
+      </div>
+      <div class="r-topbar region chrome" data-region="topbar">
+        <!-- White top bar with breadcrumb, update status and account control -->
+      </div>
+      <div class="r-page-title region text" data-region="page-title">
+        <!-- Large Operations overview heading -->
+        <p
+          style="
+            font-size: var(--r-page-title-font);
+            font-family: var(--r-page-title-family), sans-serif;
+            font-weight: var(--r-page-title-weight);
+            line-height: 1.05;
+            margin: 0;
+          "
+        >
+          page-title
+        </p>
+      </div>
+      <div class="r-page-subtitle region text" data-region="page-subtitle">
+        <!-- Incidents in your scope, with the next step clearly marked -->
+        <p
+          style="
+            font-size: var(--r-page-subtitle-font);
+            line-height: 1.05;
+            margin: 0;
+          "
+        >
+          page-subtitle
+        </p>
+      </div>
+      <div
+        class="r-situation-summary region chrome"
+        data-region="situation-summary"
+      >
+        <!-- Dark teal incident-priority summary band -->
+      </div>
+      <div class="r-situation-copy region text" data-region="situation-copy">
+        <!-- Critical incident count and short next-step explanation -->
+        <p style="line-height: 1.05; margin: 0">situation-copy</p>
+      </div>
+      <div
+        class="r-situation-action region control"
+        data-region="situation-action"
+      >
+        <!-- Brick action button to review critical reports: rebuild the control's chrome from the crop (comp-spec.mjs --crop situation-action); its ink box, border, fill, radius, and label size are the comp's -->
+      </div>
+      <div
+        class="r-next-actions-panel region chrome"
+        data-region="next-actions-panel"
+      >
+        <!-- Next actions panel with two actionable rows -->
+      </div>
+      <div class="r-metric-strip region chrome" data-region="metric-strip">
+        <!-- Four compact incident total cells -->
+      </div>
+      <div
+        class="r-recent-incidents-title region text"
+        data-region="recent-incidents-title"
+      >
+        <!-- Recent incidents heading with sample data label -->
+        <p
+          style="
+            font-size: var(--r-recent-incidents-title-font);
+            line-height: 1.05;
+            margin: 0;
+          "
+        >
+          recent-incidents-title
+        </p>
+      </div>
+      <div
+        class="r-incident-search region control"
+        data-region="incident-search"
+      >
+        <!-- Incident search input and severity filter: rebuild the control's chrome from the crop (comp-spec.mjs --crop incident-search); its ink box, border, fill, radius, and label size are the comp's -->
+      </div>
+      <div class="r-table-headings region text" data-region="table-headings">
+        <!-- Incident, severity, status, location, reported and next action headings -->
+        <p
+          style="
+            font-size: var(--r-table-headings-font);
+            line-height: 1.05;
+            margin: 0;
+          "
+        >
+          table-headings
+        </p>
+      </div>
+      <div
+        class="r-incident-row-one region chrome"
+        data-region="incident-row-one"
+      >
+        <!-- Critical incident row with under-review status and report action -->
+      </div>
+      <div
+        class="r-incident-row-two region chrome"
+        data-region="incident-row-two"
+      >
+        <!-- High-severity assigned incident row with team action -->
+      </div>
+      <div
+        class="r-incident-row-three region chrome"
+        data-region="incident-row-three"
+      >
+        <!-- Medium-severity verified incident row -->
+      </div>
+      <div
+        class="r-incident-row-four region chrome"
+        data-region="incident-row-four"
+      >
+        <!-- Low-severity assigned incident row -->
+      </div>
+      <div
+        class="r-table-pagination region control"
+        data-region="table-pagination"
+      >
+        <!-- Incident row count and page controls: rebuild the control's chrome from the crop (comp-spec.mjs --crop table-pagination); its ink box, border, fill, radius, and label size are the comp's -->
+      </div>
+    </main>
+  </body>
+</html>

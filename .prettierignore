@@ -1,0 +1,15 @@
+node_modules/
+**/.next/
+**/dist/
+**/next-env.d.ts
+**/*.tsbuildinfo
+coverage/
+test-results/
+playwright-report/
+.env
+.env.*
+package-lock.json
+AGENTS.md
+apps/web/AGENTS.md
+docs/PROJECT_IMPLEMENTATION.md
+.impeccable/hook.cache.json

@@ -1,0 +1,9 @@
+# AWS production pilot
+
+ResQCloud is deployed as a limited AWS pilot at [https://dsl9l1s4fdu1c.cloudfront.net](https://dsl9l1s4fdu1c.cloudfront.net). The deployment is defined by [production.yaml](../../infra/aws/production.yaml) and [deployAwsProduction.mjs](../../scripts/deployAwsProduction.mjs). The application uses CloudFront, an application load balancer, single-task ECS services, encrypted Aurora PostgreSQL, Cognito, private S3 evidence storage, SQS, and SNS in `ap-southeast-2`.
+
+The production pilot has returned HTTP 200 from the homepage and healthy responses from `/health` and `/ready`. This verifies basic availability and database readiness at that time; it is not a security, disaster-recovery, or operational-readiness certification. CloudFront-to-load-balancer origin traffic is currently HTTP, and the application is intentionally single-instance. See [production pilot configuration and readiness](../project/production-pilot.md) and [implementation status](../project/status.md) for the environment map and release gaps.
+
+Production configuration belongs in CloudFormation parameters, ECS task definitions, IAM task roles, and AWS Secrets Manager. Do not create or commit a production `.env` containing live values. The root `.env` is for local development; `.env.example` is a safe template. `NEXT_PUBLIC_*` values are public and are embedded in the web build. The current deployment uses same-origin `/api` routing, so `NEXT_PUBLIC_API_URL` is empty in its web build.
+
+For a new deployment, verify the AWS profile/account and review the CloudFormation change set before applying it. The deployment script currently targets account `590951085792` and region `ap-southeast-2`, and has a database cleanup action after health checks; inspect the script before running it in another environment. Do not use real emergency or personal data until the outstanding policy, privacy, security, and operational gates are closed.

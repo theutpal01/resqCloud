@@ -1,0 +1,76 @@
+label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: var(--space-4) 0 var(--space-2);
+}
+input,
+select,
+textarea {
+  display: block;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--control-line);
+  border-radius: 0.4rem;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.9rem;
+  min-height: 2.75rem;
+}
+input[type="checkbox"] {
+  width: 1rem;
+  min-height: 1rem;
+}
+.check-label {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+}
+.field-error {
+  font-size: 0.8rem;
+  color: var(--danger);
+}
+.form-grid {
+  display: grid;
+  gap: var(--space-4) var(--space-6);
+}
+.form-grid label {
+  margin-top: 0;
+}
+.report-form {
+  max-width: 54rem;
+}
+.report-form > .button {
+  margin-top: 1rem;
+}
+form > .button {
+  margin-top: 1rem;
+}
+form .button-row {
+  margin-top: 1rem;
+}
+@media (min-width: 48rem) {
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+input[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+textarea {
+  resize: vertical;
+}
+.check-label {
+  min-height: var(--touch-target);
+}
+form > .button,
+form .button-row {
+  margin-top: var(--space-4);
+}

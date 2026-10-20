@@ -1,0 +1,121 @@
+{
+  "regions": [
+    {
+      "id": "navigation-rail",
+      "kind": "chrome",
+      "grid": "A0:B9",
+      "note": "Deep teal role-scoped side navigation rail, including brand and grouped destinations",
+      "container": true
+    },
+    {
+      "id": "brand",
+      "kind": "text",
+      "grid": "A0:B0",
+      "note": "ResQCloud wordmark in white beside a compact outline cloud mark"
+    },
+    {
+      "id": "topbar",
+      "kind": "chrome",
+      "grid": "C0:J0",
+      "note": "White top bar with breadcrumb, update status and account control",
+      "container": true
+    },
+    {
+      "id": "page-title",
+      "kind": "text",
+      "grid": "C1:E1",
+      "note": "Large Operations overview heading"
+    },
+    {
+      "id": "page-subtitle",
+      "kind": "text",
+      "grid": "C1:F1",
+      "note": "Incidents in your scope, with the next step clearly marked"
+    },
+    {
+      "id": "situation-summary",
+      "kind": "chrome",
+      "grid": "C2:H2",
+      "note": "Dark teal incident-priority summary band",
+      "container": true
+    },
+    {
+      "id": "situation-copy",
+      "kind": "text",
+      "grid": "D2:F2",
+      "note": "Critical incident count and short next-step explanation"
+    },
+    {
+      "id": "situation-action",
+      "kind": "control",
+      "grid": "G2:H2",
+      "note": "Brick action button to review critical reports"
+    },
+    {
+      "id": "next-actions-panel",
+      "kind": "chrome",
+      "grid": "H2:J4",
+      "note": "Next actions panel with two actionable rows",
+      "container": true
+    },
+    {
+      "id": "metric-strip",
+      "kind": "chrome",
+      "grid": "C3:H4",
+      "note": "Four compact incident total cells",
+      "container": true
+    },
+    {
+      "id": "recent-incidents-title",
+      "kind": "text",
+      "grid": "C4:E4",
+      "note": "Recent incidents heading with sample data label"
+    },
+    {
+      "id": "incident-search",
+      "kind": "control",
+      "grid": "F4:I4",
+      "note": "Incident search input and severity filter"
+    },
+    {
+      "id": "table-headings",
+      "kind": "text",
+      "grid": "C5:J5",
+      "note": "Incident, severity, status, location, reported and next action headings"
+    },
+    {
+      "id": "incident-row-one",
+      "kind": "chrome",
+      "grid": "C5:J6",
+      "note": "Critical incident row with under-review status and report action",
+      "container": true
+    },
+    {
+      "id": "incident-row-two",
+      "kind": "chrome",
+      "grid": "C6:J7",
+      "note": "High-severity assigned incident row with team action",
+      "container": true
+    },
+    {
+      "id": "incident-row-three",
+      "kind": "chrome",
+      "grid": "C7:J8",
+      "note": "Medium-severity verified incident row",
+      "container": true
+    },
+    {
+      "id": "incident-row-four",
+      "kind": "chrome",
+      "grid": "C8:J9",
+      "note": "Low-severity assigned incident row",
+      "container": true
+    },
+    {
+      "id": "table-pagination",
+      "kind": "control",
+      "grid": "C9:J9",
+      "note": "Incident row count and page controls"
+    }
+  ]
+}

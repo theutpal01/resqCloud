@@ -1,0 +1,211 @@
+.login-layout {
+  display: grid;
+  gap: var(--space-6);
+  align-items: start;
+  min-width: 0;
+  margin-bottom: var(--space-8);
+}
+.community-panel {
+  background: var(--nav-surface);
+  color: var(--nav-text);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+.community-mark {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  color: var(--nav-text);
+  border: 1px solid var(--nav-line);
+  background: var(--nav-active);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-8);
+}
+.community-panel .eyebrow {
+  color: var(--nav-muted);
+}
+.community-panel h2 {
+  font-size: clamp(1.65rem, 3vw, 2.5rem);
+  line-height: 1.2;
+  font-weight: 650;
+  margin-bottom: var(--space-5);
+  text-wrap: balance;
+}
+.community-description {
+  color: var(--nav-muted);
+  max-width: 34rem;
+  font-size: 0.9375rem;
+}
+.community-steps {
+  list-style: none;
+  margin: var(--space-8) 0;
+  padding: 0;
+}
+.community-steps li {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+.community-steps li > span {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border: 1px solid var(--nav-line);
+  border-radius: 50%;
+  color: var(--nav-muted);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+}
+.community-steps strong {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.community-steps p {
+  font-size: 0.8125rem;
+  color: var(--nav-muted);
+  margin: var(--space-1) 0 0;
+}
+.public-shortcuts {
+  border-top: 1px solid var(--nav-line);
+  padding-top: var(--space-3);
+}
+.public-shortcuts a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  min-height: var(--touch-target);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+}
+.public-shortcuts a:hover {
+  background: var(--nav-active);
+}
+.public-shortcuts a:focus-visible {
+  outline-color: var(--nav-text);
+}
+.public-shortcuts a > span {
+  flex: 1;
+}
+.public-shortcuts small {
+  color: var(--nav-muted);
+  font-size: 0.75rem;
+  margin-top: var(--space-1);
+}
+.auth-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.login-card {
+  padding: var(--space-6);
+  min-width: 0;
+}
+.login-card h2 {
+  font-size: 1.75rem;
+  margin-bottom: var(--space-3);
+}
+.login-card > .muted {
+  font-size: 0.9375rem;
+  margin-bottom: var(--space-6);
+}
+.demo-login {
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--canvas);
+}
+.demo-login h3 {
+  margin: 0 0 var(--space-1);
+  font-size: 1rem;
+}
+.demo-login > p {
+  margin: 0 0 var(--space-3);
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+.demo-login-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--space-2);
+}
+.demo-login-options .button {
+  width: 100%;
+  min-width: 0;
+}
+.demo-login .demo-login-note {
+  margin: var(--space-3) 0 0;
+  font-size: 0.75rem;
+}
+.login-card form > .button,
+.registration-form > .button {
+  width: 100%;
+}
+.login-card form > [role="alert"] {
+  margin-top: var(--space-4);
+}
+.login-card input {
+  min-width: 0;
+}
+.login-card label {
+  margin-top: var(--space-5);
+}
+.auth-otp {
+  margin-top: var(--space-4);
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+.auth-otp summary {
+  cursor: pointer;
+  min-height: var(--touch-target);
+  padding-block: var(--space-3);
+}
+.auth-otp summary:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.auth-register {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--line);
+  font-size: 0.8125rem;
+}
+.auth-register .button {
+  color: var(--primary);
+}
+.auth-footnote {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  align-items: flex-start;
+  background: var(--canvas);
+  color: var(--muted);
+  font-size: 0.75rem;
+  padding: var(--space-4);
+  margin: 0;
+}
+@media (min-width: 64rem) {
+  .login-layout {
+    grid-template-columns: 1fr 1.1fr;
+  }
+  .community-panel,
+  .login-card {
+    padding: var(--space-8);
+  }
+}
+@media (min-width: 90rem) {
+  .community-panel,
+  .login-card {
+    padding: var(--space-10);
+  }
+}

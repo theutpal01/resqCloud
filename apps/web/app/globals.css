@@ -1,0 +1,54 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+@import "../styles/base.css" layer(base);
+@import "../styles/layout.css" layer(components);
+@import "../styles/components/controls.css" layer(components);
+@import "../styles/components/dashboard.css" layer(components);
+@import "../styles/components/tables.css" layer(components);
+@import "../styles/components/forms.css" layer(components);
+@import "../styles/components/feedback.css" layer(components);
+@import "../styles/components/details.css" layer(components);
+@import "../styles/components/auth.css" layer(components);
+@import "./workspace-refresh.css" layer(components);
+@import "./tailwind-components.css" layer(components);
+
+@source "../";
+
+@theme inline {
+  --color-background: var(--canvas);
+  --color-foreground: var(--ink);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--ink);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--ink);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--surface);
+  --color-secondary: var(--primary-soft);
+  --color-secondary-foreground: var(--ink);
+  --color-muted: var(--canvas);
+  --color-muted-foreground: var(--muted);
+  --color-accent: var(--primary-soft);
+  --color-accent-foreground: var(--ink);
+  --color-destructive: var(--danger);
+  --color-destructive-foreground: var(--surface);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-border: var(--danger-border);
+  --color-primary-border: var(--primary-border);
+  --color-green: var(--green);
+  --color-green-soft: var(--green-soft);
+  --color-green-border: var(--green-border);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+  --color-amber-border: var(--amber-border);
+  --color-nav-surface: var(--nav-surface);
+  --color-nav-active: var(--nav-active);
+  --color-nav-text: var(--nav-text);
+  --color-nav-muted: var(--nav-muted);
+  --color-nav-line: var(--nav-line);
+  --color-nav-alert: var(--nav-alert);
+  --color-nav-success: var(--nav-success);
+  --color-border: var(--line);
+  --color-input: var(--control-line);
+  --color-ring: var(--primary);
+  --font-sans: var(--font);
+}
