@@ -1,16 +1,35 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { parse as parseDotenv } from "dotenv";
 import { setTimeout as sleep } from "node:timers/promises";
 
-const profile = process.env.AWS_PROFILE || "resqcloud-prod";
-const region = process.env.AWS_REGION || "ap-southeast-2";
+const profile = process.env.AWS_PROFILE;
+const region =
+  process.env.AWS_REGION ||
+  process.env.AWS_DEFAULT_REGION ||
+  "ap-southeast-2";
 const stack = "resqcloud-production";
 const template = "infra/aws/production.yaml";
 const tag = `release-${new Date().toISOString().replaceAll(/[-:.TZ]/g, "").slice(0, 14)}`;
+const expectedAccountId = process.env.AWS_EXPECTED_ACCOUNT_ID?.trim();
+const localPublicConfig = existsSync(".env")
+  ? parseDotenv(readFileSync(".env"))
+  : {};
+const mapboxToken = (
+  process.env.NEXT_PUBLIC_MAPBOX_TOKEN ||
+  localPublicConfig.NEXT_PUBLIC_MAPBOX_TOKEN ||
+  ""
+).trim();
+if (mapboxToken && !mapboxToken.startsWith("pk."))
+  throw new Error(
+    "NEXT_PUBLIC_MAPBOX_TOKEN must be a Mapbox public token (pk.). Private tokens cannot be embedded in the browser build.",
+  );
 
 function aws(args, { json = false, quiet = false } = {}) {
-  const allArgs = [...args, "--profile", profile, "--region", region];
+  const allArgs = [...args];
+  if (profile) allArgs.push("--profile", profile);
+  if (region) allArgs.push("--region", region);
   if (!quiet) console.log(`aws ${args[0]} ${args[1] ?? ""}`);
   let result;
   try {
@@ -161,7 +180,7 @@ function checkProductionEnvironment() {
       "DB_SSL", "DB_IAM_AUTH", "AWS_REGION", "S3_BUCKET", "SQS_QUEUE_URL",
       "SNS_TOPIC_ARN", "COGNITO_USER_POOL_ID", "COGNITO_CLIENT_ID",
     ],
-    ["JWT_SECRET", "MFA_ENCRYPTION_KEY"],
+    ["JWT_SECRET", "MFA_ENCRYPTION_KEY", "ADMIN_BOOTSTRAP_TOKEN"],
   );
   problems.push(...checkTaskDefinition(
     outputs.MigrationTaskDefinition,
@@ -170,7 +189,7 @@ function checkProductionEnvironment() {
       "NODE_ENV", "APP_ORIGIN", "DB_SSL_CA_PATH", "ADMIN_DB_USERNAME",
       "ADMIN_DB_HOST", "ADMIN_DB_PORT", "ADMIN_DB_NAME",
     ],
-    ["ADMIN_DB_SECRET", "JWT_SECRET", "MFA_ENCRYPTION_KEY"],
+    ["ADMIN_DB_SECRET", "JWT_SECRET", "MFA_ENCRYPTION_KEY", "ADMIN_BOOTSTRAP_TOKEN"],
   ));
   if (problems.length)
     throw new Error(`Production ECS configuration is incomplete: ${problems.join("; ")}. No secret values were read.`);
@@ -266,8 +285,10 @@ async function main() {
     return;
   }
   const identity = aws(["sts", "get-caller-identity", "--output", "json"], { json: true, quiet: true });
-  if (identity.Account !== "590951085792")
-    throw new Error(`AWS profile resolved to unexpected account ${identity.Account}`);
+  if (expectedAccountId && identity.Account !== expectedAccountId)
+    throw new Error(
+      `AWS credentials resolved to account ${identity.Account}; AWS_EXPECTED_ACCOUNT_ID is ${expectedAccountId}.`,
+    );
   console.log(`Deploying to AWS account ${identity.Account}, ${region}`);
   console.log("Validating CloudFormation template...");
   aws(["cloudformation", "validate-template", "--template-body", `file://${template}`, "--output", "json"], { json: true });
@@ -305,6 +326,7 @@ async function main() {
           "--build-arg", "NEXT_PUBLIC_API_URL=",
           "--build-arg", `NEXT_PUBLIC_COGNITO_CLIENT_ID=${outputs.CognitoClientId}`,
           "--build-arg", `NEXT_PUBLIC_COGNITO_DOMAIN=${cognito.domain}`,
+          "--build-arg", `NEXT_PUBLIC_MAPBOX_TOKEN=${mapboxToken}`,
         ],
       ],
     ]) {

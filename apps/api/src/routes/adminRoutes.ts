@@ -1,5 +1,6 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
+import { Secret, TOTP } from "otpauth";
 import { Op } from "sequelize";
 import { z } from "zod";
 import { config } from "../config.js";
@@ -86,6 +87,7 @@ router.post(
           .string()
           .regex(/^[A-Z2-7]{16,64}$/)
           .optional(),
+        otp: z.string().regex(/^\d{6}$/).optional(),
       })
       .parse(req.body);
     if (b.role !== "citizen" && !b.departmentId && b.role !== "admin")
@@ -111,12 +113,21 @@ router.post(
     if (
       config.NODE_ENV === "production" &&
       b.role !== "citizen" &&
-      !b.mfaSecret
+      (!b.mfaSecret || !b.otp)
     )
       throw new HttpError(
         400,
-        "Provision an MFA secret through a secure channel",
+        "Set up and verify an authenticator code before creating this account",
       );
+    if (b.mfaSecret && b.otp) {
+      const otpValid =
+        new TOTP({ secret: Secret.fromBase32(b.mfaSecret) }).validate({
+          token: b.otp,
+          window: 1,
+        }) !== null;
+      if (!otpValid)
+        throw new HttpError(400, "Enter the current authenticator code");
+    }
     const user = await db.transaction(async (transaction) => {
       const u = await User.create(
         {
@@ -126,7 +137,10 @@ router.post(
           departmentId: b.departmentId,
           jurisdictionCode: b.jurisdictionCode,
           passwordHash: await bcrypt.hash(b.password, 12),
-          mfaSecret: b.mfaSecret ? encryptMfaSecret(b.mfaSecret) : null,
+          mfaSecret:
+            b.role !== "citizen" && b.mfaSecret
+              ? encryptMfaSecret(b.mfaSecret)
+              : null,
           enabled: true,
         },
         { transaction },

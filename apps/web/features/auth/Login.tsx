@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, type Actor } from "../../../../packages/shared/src/index";
@@ -26,7 +27,8 @@ export function Login({ isRestoring = false }: { isRestoring?: boolean }) {
       <p className="eyebrow">SECURE WORKSPACE</p>
       <h2>Welcome back</h2>
       <p className="muted">
-        Sign in to follow your reports or coordinate your team’s response.
+        Citizens use secure Cognito sign-in. Staff and administrators use their
+        assigned work account below.
       </p>
       {cognitoEnabled && (
         <Button
@@ -123,10 +125,10 @@ export function Login({ isRestoring = false }: { isRestoring?: boolean }) {
             {errors.password.message}
           </span>
         )}
-        <details className="auth-otp">
-          <summary>Use an authenticator code</summary>
+        <details className="auth-otp" open>
+          <summary>Staff authenticator code</summary>
           <Label htmlFor="otp">
-            Authenticator code <span className="muted">(if enabled)</span>
+            Authenticator code <span className="muted">(required for staff and administrators)</span>
           </Label>
           <Input
             id="otp"
@@ -159,6 +161,11 @@ export function Login({ isRestoring = false }: { isRestoring?: boolean }) {
               : "Sign in"}
         </Button>
       </form>
+      {process.env.NODE_ENV === "production" && (
+        <p className="auth-footnote">
+          Initial administrator? <Link href="/admin/bootstrap">Set up the first admin account</Link>
+        </p>
+      )}
     </section>
   );
 }

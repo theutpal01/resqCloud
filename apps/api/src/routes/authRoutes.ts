@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { randomUUID } from "node:crypto";
+import { randomUUID, timingSafeEqual } from "node:crypto";
 import rateLimit from "express-rate-limit";
 import bcrypt from "bcryptjs";
+import { Secret, TOTP } from "otpauth";
 import { z } from "zod";
 import { config } from "../config.js";
-import { User, Session } from "../database.js";
+import { db, User, Session } from "../database.js";
 import {
   authenticate,
   HttpError,
@@ -16,6 +17,7 @@ import {
   hash,
 } from "../auth.js";
 import { audit } from "../incidents.js";
+import { encryptMfaSecret } from "../mfaCrypto.js";
 import {
   loginSchema,
   registerSchema,
@@ -24,6 +26,7 @@ import {
 export const authRoutes = Router();
 const router = authRoutes;
 const authLimiter = rateLimit({ windowMs: 15 * 60000, limit: 20 });
+const bootstrapLimiter = rateLimit({ windowMs: 15 * 60000, limit: 5 });
 const demoLoginSchema = z.object({
   role: z.enum(["citizen", "dispatcher", "responder", "supervisor", "admin"]),
 });
@@ -71,6 +74,92 @@ router.post("/api/v1/auth/login", authLimiter, async (req, res) => {
   await audit(user.get().id, "auth.login", user.get().id, {});
   res.json({ user: safeUser(user), accessToken });
 });
+router.get("/api/v1/auth/admin-bootstrap-status", async (_req, res) => {
+  if (config.NODE_ENV !== "production")
+    return res.json({ available: false });
+  const available =
+    !!config.ADMIN_BOOTSTRAP_TOKEN &&
+    (await User.count({ where: { role: "admin" } })) === 0;
+  res.set("Cache-Control", "no-store").json({ available });
+});
+router.post(
+  "/api/v1/auth/admin-bootstrap",
+  bootstrapLimiter,
+  async (req, res) => {
+    if (config.NODE_ENV !== "production" || !config.ADMIN_BOOTSTRAP_TOKEN)
+      throw new HttpError(404, "Endpoint not found");
+    const body = z
+      .object({
+        token: z.string().min(32).max(256),
+        name: z.string().trim().min(2).max(100),
+        email: z.email(),
+        password: z.string().min(12).max(128),
+        mfaSecret: z.string().regex(/^[A-Z2-7]{16,64}$/),
+        otp: z.string().regex(/^\d{6}$/),
+      })
+      .parse(req.body);
+    const suppliedToken = Buffer.from(body.token);
+    const expectedToken = Buffer.from(config.ADMIN_BOOTSTRAP_TOKEN);
+    if (
+      suppliedToken.length !== expectedToken.length ||
+      !timingSafeEqual(suppliedToken, expectedToken)
+    )
+      throw new HttpError(401, "Invalid bootstrap token");
+    const otpValid =
+      new TOTP({ secret: Secret.fromBase32(body.mfaSecret) }).validate({
+        token: body.otp,
+        window: 1,
+      }) !== null;
+    if (!otpValid)
+      throw new HttpError(400, "Enter the current authenticator code");
+
+    const normalizedEmail = body.email.toLowerCase();
+    const user = await db.transaction(async (transaction) => {
+      await db.query("SELECT pg_advisory_xact_lock(9182, 31)", {
+        transaction,
+      });
+      if ((await User.count({ where: { role: "admin" }, transaction })) > 0)
+        throw new HttpError(409, "Initial administrator setup is complete");
+      if (await User.findOne({ where: { email: normalizedEmail }, transaction }))
+        throw new HttpError(
+          409,
+          "This email already has an account. Use a separate staff email.",
+        );
+      const created = await User.create(
+        {
+          id: randomUUID(),
+          name: body.name,
+          email: normalizedEmail,
+          passwordHash: await bcrypt.hash(body.password, 12),
+          role: "admin",
+          departmentId: null,
+          jurisdictionCode: null,
+          enabled: true,
+          mfaSecret: encryptMfaSecret(body.mfaSecret),
+          cognitoSub: null,
+        },
+        { transaction },
+      );
+      await audit(
+        created.get().id,
+        "auth.admin_bootstrapped",
+        created.get().id,
+        {},
+        transaction,
+      );
+      return created;
+    });
+    const accessToken = await issueSession(
+      user.get().id,
+      req.get("user-agent") ?? "Unknown",
+      res,
+    );
+    res.set("Cache-Control", "no-store").status(201).json({
+      user: safeUser(user),
+      accessToken,
+    });
+  },
+);
 router.post("/api/v1/auth/register", authLimiter, async (req, res) => {
   if (config.NODE_ENV === "production")
     throw new HttpError(403, "Use Cognito registration in production");

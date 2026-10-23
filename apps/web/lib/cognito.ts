@@ -7,7 +7,7 @@ const encode = (bytes: Uint8Array) =>
     .replaceAll("+", "-")
     .replaceAll("/", "_")
     .replaceAll("=", "");
-export async function startCitizenLogin() {
+async function startCitizenAuth(flow: "login" | "signup") {
   if (!domain || !clientId)
     throw new Error("Citizen authentication is not configured");
   const verifier = encode(crypto.getRandomValues(new Uint8Array(48)));
@@ -27,8 +27,11 @@ export async function startCitizenLogin() {
     code_challenge: challenge,
     code_challenge_method: "S256",
   });
-  location.assign(`${domain}/oauth2/authorize?${params}`);
+  const endpoint = flow === "signup" ? "signup" : "oauth2/authorize";
+  location.assign(`${domain.replace(/\/$/, "")}/${endpoint}?${params}`);
 }
+export const startCitizenLogin = () => startCitizenAuth("login");
+export const startCitizenSignup = () => startCitizenAuth("signup");
 export async function finishCitizenLogin() {
   if (!domain || !clientId)
     throw new Error("Citizen authentication is not configured");

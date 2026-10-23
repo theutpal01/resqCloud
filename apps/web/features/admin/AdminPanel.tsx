@@ -7,6 +7,8 @@ import { Alert } from "../../components/ui/Alert";
 import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { Label } from "../../components/ui/Label";
+import { authenticatorUri, generateMfaSecret } from "../../lib/mfa";
 import {
   categories as supportedCategories,
   categoryDepartment as defaultCategoryDepartments,
@@ -80,6 +82,14 @@ export function AdminPanel({ section }: { section: string }) {
   const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [savingPolicy, setSavingPolicy] = useState(false);
   const [edits, setEdits] = useState<Record<string, AdminEdit>>({});
+  const [newRole, setNewRole] = useState("dispatcher");
+  const [newEmail, setNewEmail] = useState("");
+  const [newMfaSecret, setNewMfaSecret] = useState("");
+  const [createdAccount, setCreatedAccount] = useState<{
+    email: string;
+    mfaSecret: string;
+  } | null>(null);
+  const [creatingUser, setCreatingUser] = useState(false);
   const [error, setError] = useState("");
   const refresh = useCallback(async () => {
     try {
@@ -174,6 +184,25 @@ export function AdminPanel({ section }: { section: string }) {
         <Alert role="alert" variant="destructive">
           {error}
         </Alert>
+      )}
+      {section === "users" && createdAccount && (
+        <section className="action-panel" role="status" aria-labelledby="created-account-title">
+          <h3 id="created-account-title">Staff account created</h3>
+          <p>
+            Securely give {createdAccount.email} the temporary password and
+            authenticator setup key. The key is shown once here and is not
+            returned by the server.
+          </p>
+          <Label htmlFor="created-mfa-secret">Authenticator setup key</Label>
+          <Input id="created-mfa-secret" value={createdAccount.mfaSecret} readOnly />
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setCreatedAccount(null)}
+          >
+            Hide setup key
+          </Button>
+        </section>
       )}
       {section === "jurisdictions" && (
         <>
@@ -670,23 +699,40 @@ export function AdminPanel({ section }: { section: string }) {
               e.preventDefault();
               const form = e.currentTarget;
               const f = new FormData(form);
+              setCreatingUser(true);
+              setError("");
               try {
                 await post("/admin/users", {
                   name: f.get("name"),
                   email: f.get("email"),
                   password: f.get("password"),
-                  role: f.get("role"),
-                  departmentId: Number(f.get("departmentId")),
-                  jurisdictionCode: String(f.get("jurisdictionCode") ?? ""),
+                  role: newRole,
+                  departmentId:
+                    newRole === "admin" ? null : Number(f.get("departmentId")),
+                  jurisdictionCode:
+                    newRole === "admin"
+                      ? null
+                      : String(f.get("jurisdictionCode") ?? ""),
+                  mfaSecret: newMfaSecret,
+                  otp: f.get("mfaOtp"),
+                });
+                setCreatedAccount({
+                  email: String(f.get("email")),
+                  mfaSecret: newMfaSecret,
                 });
                 form.reset();
+                setNewRole("dispatcher");
+                setNewEmail("");
+                setNewMfaSecret(generateMfaSecret());
                 refresh();
               } catch (e) {
                 setError((e as Error).message);
+              } finally {
+                setCreatingUser(false);
               }
             }}
           >
-            <h3>Create authority account</h3>
+            <h3>Create staff account</h3>
             <div className="form-grid">
               {[
                 ["name", "Full name", "text"],
@@ -701,13 +747,22 @@ export function AdminPanel({ section }: { section: string }) {
                     type={type}
                     required
                     minLength={name === "password" ? 12 : 2}
+                    onChange={name === "email" ? (event) => setNewEmail(event.target.value) : undefined}
                   />
                 </div>
               ))}
               <div>
                 <label htmlFor="new-role">Role</label>
-                <Select id="new-role" name="role">
-                  {["dispatcher", "responder", "supervisor"].map((r) => (
+                <Select
+                  id="new-role"
+                  name="role"
+                  value={newRole}
+                  onChange={(event) => {
+                    setNewRole(event.target.value);
+                    setNewMfaSecret(generateMfaSecret());
+                  }}
+                >
+                  {["dispatcher", "responder", "supervisor", "admin"].map((r) => (
                     <option key={r}>{r}</option>
                   ))}
                 </Select>
@@ -719,7 +774,7 @@ export function AdminPanel({ section }: { section: string }) {
                 <Select
                   id="new-jurisdiction"
                   name="jurisdictionCode"
-                  required
+                  required={newRole !== "admin"}
                   defaultValue=""
                 >
                   <option value="" disabled>
@@ -734,23 +789,42 @@ export function AdminPanel({ section }: { section: string }) {
               </div>
               <div>
                 <label htmlFor="new-department">Department</label>
-                <Select id="new-department" name="departmentId">
-                  {[
-                    "Fire & Rescue",
-                    "Medical/Emergency Health",
-                    "Police/Security",
-                    "Municipal/Infrastructure",
-                    "Utilities",
-                    "Disaster Management",
-                  ].map((d, i) => (
-                    <option key={d} value={i + 1}>
-                      {d}
+                <Select id="new-department" name="departmentId" required={newRole !== "admin"}>
+                  {departments.map((department) => (
+                    <option key={department.id} value={department.id}>
+                      {department.name}
                     </option>
                   ))}
                 </Select>
               </div>
             </div>
-            <Button>Create account</Button>
+            <section className="action-panel" aria-labelledby="staff-mfa-title">
+              <h4 id="staff-mfa-title">Verify staff authenticator setup</h4>
+              <p>
+                Add the setup key below to an authenticator app, then enter its
+                current code. Share the key and temporary password with the
+                staff member through separate secure channels.
+              </p>
+              {!newMfaSecret ? (
+                <Button type="button" variant="secondary" onClick={() => setNewMfaSecret(generateMfaSecret())}>
+                  Generate authenticator setup key
+                </Button>
+              ) : (
+                <>
+                  <Label htmlFor="new-mfa-secret">Authenticator setup key</Label>
+                  <Input id="new-mfa-secret" value={newMfaSecret} readOnly autoComplete="off" />
+                  <details>
+                    <summary>Authenticator setup URI for {newEmail || "staff account"}</summary>
+                    <Input value={authenticatorUri(newMfaSecret, newEmail)} readOnly aria-label="Authenticator setup URI" />
+                  </details>
+                  <Label htmlFor="new-mfa-otp">Current authenticator code</Label>
+                  <Input id="new-mfa-otp" name="mfaOtp" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required />
+                </>
+              )}
+            </section>
+            <Button disabled={creatingUser || !newMfaSecret}>
+              {creatingUser ? "Creating account…" : "Create account"}
+            </Button>
           </form>
         </>
       ) : (

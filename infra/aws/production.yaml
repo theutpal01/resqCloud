@@ -243,6 +243,13 @@ Resources:
       GenerateSecretString:
         PasswordLength: 64
         ExcludePunctuation: true
+  AdminBootstrapSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: resqcloud/production/admin-bootstrap-token
+      GenerateSecretString:
+        PasswordLength: 64
+        ExcludePunctuation: true
   ApiRepository:
     Type: AWS::ECR::Repository
     Properties:
@@ -299,6 +306,7 @@ Resources:
                 Resource:
                   - !Ref ApplicationSecret
                   - !Ref MfaEncryptionSecret
+                  - !Ref AdminBootstrapSecret
                   - !GetAtt Database.MasterUserSecret.SecretArn
   ApiTaskRole:
     Type: AWS::IAM::Role
@@ -428,6 +436,7 @@ Resources:
           Secrets:
             - {Name: JWT_SECRET, ValueFrom: !Ref ApplicationSecret}
             - {Name: MFA_ENCRYPTION_KEY, ValueFrom: !Ref MfaEncryptionSecret}
+            - {Name: ADMIN_BOOTSTRAP_TOKEN, ValueFrom: !Ref AdminBootstrapSecret}
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -470,6 +479,7 @@ Resources:
             - {Name: ADMIN_DB_SECRET, ValueFrom: !GetAtt Database.MasterUserSecret.SecretArn}
             - {Name: JWT_SECRET, ValueFrom: !Ref ApplicationSecret}
             - {Name: MFA_ENCRYPTION_KEY, ValueFrom: !Ref MfaEncryptionSecret}
+            - {Name: ADMIN_BOOTSTRAP_TOKEN, ValueFrom: !Ref AdminBootstrapSecret}
           LogConfiguration:
             LogDriver: awslogs
             Options:

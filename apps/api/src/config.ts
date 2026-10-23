@@ -14,6 +14,7 @@ const schema = z.object({
     (value) => (value === "" ? undefined : value),
     z.string().min(32).optional(),
   ),
+  ADMIN_BOOTSTRAP_TOKEN: z.string().min(32).optional(),
   DB_DIALECT: z.enum(["postgres", "sqlite"]).default("postgres"),
   DATABASE_URL: z.string().optional(),
   DB_SSL: z.enum(["true", "false"]).default("false"),
@@ -33,6 +34,7 @@ if (
   config.NODE_ENV === "production" &&
   (config.JWT_SECRET.includes("REPLACE") ||
     !config.MFA_ENCRYPTION_KEY ||
+    !config.ADMIN_BOOTSTRAP_TOKEN ||
     config.DB_DIALECT !== "postgres" ||
     !config.DATABASE_URL ||
     config.DB_SSL !== "true" ||
@@ -42,7 +44,7 @@ if (
     !config.COGNITO_CLIENT_ID)
 )
   throw new Error(
-    "Production requires a dedicated MFA encryption key, PostgreSQL with verified TLS, HTTPS and Cognito configuration",
+    "Production requires MFA and admin bootstrap secrets, PostgreSQL with verified TLS, HTTPS and Cognito configuration",
   );
 if (config.DB_SSL === "true" && !config.DB_SSL_CA_PATH)
   throw new Error(

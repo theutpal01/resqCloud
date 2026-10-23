@@ -162,6 +162,8 @@ AWS_PROFILE=resqcloud-demo npm run dev
 
 `NEXT_PUBLIC_*` values are exposed in the browser bundle and are read when Next.js starts/builds. Restart the dev server after changing them; rebuild a production app. Keep database settings, private signing keys, and AWS credentials out of `NEXT_PUBLIC_*` variables.
 
+The interactive map uses the optional public Mapbox token `NEXT_PUBLIC_MAPBOX_TOKEN` (`pk.`). Set it in the root `.env` or the deploy shell environment. The AWS deploy script forwards only this public value to the web image build; rebuild and deploy the web image after changing it. Never use a private Mapbox token (`sk.`) here.
+
 Authority TOTP secrets are encrypted before database storage. Local development derives the encryption key from `JWT_SECRET` unless `MFA_ENCRYPTION_KEY` is set. Production requires a dedicated `MFA_ENCRYPTION_KEY`; the production CloudFormation stack supplies it from Secrets Manager and retains it with the database data.
 
 ## Check the connection

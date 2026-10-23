@@ -19,7 +19,14 @@ export function AuthLanding({
     <div className="login-layout">
       <Card className="auth-panel">
         <Login isRestoring={isRestoring} />
-        {!cognitoEnabled && (
+        {cognitoEnabled ? (
+          <div className="auth-register">
+            <span>New to ResQCloud?</span>
+            <Button asChild variant="ghost">
+              <Link href="/signup">Create an account</Link>
+            </Button>
+          </div>
+        ) : (
           <div className="auth-register">
             <span>New to ResQCloud?</span>
             <Dialog
